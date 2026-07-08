@@ -1,0 +1,65 @@
+# Foto 3x4 — Rust + WebAssembly
+
+Conversor de fotos para formato de documento (3x4), rodando 100% no navegador
+via WebAssembly. Sem backend, sem upload de imagem para lugar nenhum — tudo é
+processado localmente com `web-sys`/`Canvas 2D`.
+
+## Estrutura
+
+```
+foto3x4-wasm/
+├── Cargo.toml
+├── index.html              # carrega o módulo wasm gerado
+├── src/lib.rs               # toda a UI + lógica de recorte/zoom/export
+└── .github/workflows/deploy.yml   # compila e publica no GitHub Pages automaticamente
+```
+
+Todo o DOM (CSS + HTML) é montado em runtime pelo próprio `lib.rs`, então o
+`index.html` fica minúsculo — só inicializa o módulo wasm.
+
+## Deploy automático (recomendado, sem instalar nada localmente)
+
+1. Suba esta pasta para um repositório no GitHub, na branch `main`.
+2. Em **Settings → Pages**, em "Build and deployment", escolha **GitHub
+   Actions** como source.
+3. Faça um push. O workflow em `.github/workflows/deploy.yml` vai:
+   - instalar o Rust com o target `wasm32-unknown-unknown`,
+   - instalar o `wasm-pack`,
+   - compilar (`wasm-pack build --target web --release`),
+   - publicar `index.html` + `pkg/` no GitHub Pages.
+4. O site fica em `https://seu-usuario.github.io/seu-repo/`.
+
+## Build local (opcional)
+
+Requer [rustup](https://rustup.rs) (para o target `wasm32-unknown-unknown`,
+que não vem em toolchains instaladas via `apt`) e `wasm-pack`:
+
+```bash
+rustup target add wasm32-unknown-unknown
+cargo install wasm-pack
+
+wasm-pack build --target web --release --out-dir pkg
+
+# testar localmente (precisa de um servidor estático por causa do módulo ES;
+# abrir o index.html direto com file:// não funciona por CORS do wasm)
+python3 -m http.server 8080
+```
+
+Depois é só publicar `index.html` + `pkg/` (sem os arquivos `.gitignore` e
+`package.json` dentro de `pkg/`, que não são necessários) em qualquer host
+estático — inclusive `git subtree push` para uma branch `gh-pages`, se preferir
+não usar Actions.
+
+## Notas de implementação
+
+- Estado da aplicação (imagem carregada, zoom, posição de recorte, tamanho
+  selecionado) fica em `Rc<RefCell<AppState>>`, compartilhado entre os
+  closures de eventos — o mesmo padrão de "um `Closure` por listener, com
+  `.forget()`" usado em projetos wasm-bindgen típicos.
+- O recorte/zoom acontece redesenhando a imagem em um `<canvas>` de
+  pré-visualização; o download renderiza a mesma transformação em um canvas
+  offscreen na resolução final escolhida (300×400 até 1200×1600) e exporta via
+  `HTMLCanvasElement.toBlob`.
+- Validado com `cargo check` (target nativo) para garantir que o código
+  compila sem erros de tipo/borrow — a compilação final para `wasm32` roda no
+  GitHub Actions ou na sua máquina com `wasm-pack`.

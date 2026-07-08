@@ -1,0 +1,47 @@
+[package]
+name = "foto3x4-wasm"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "=0.2.92"
+js-sys = "=0.3.69"
+console_error_panic_hook = "0.1"
+
+[dependencies.web-sys]
+version = "=0.3.69"
+features = [
+  "console",
+  "Window",
+  "Document",
+  "Element",
+  "HtmlElement",
+  "HtmlHeadElement",
+  "HtmlInputElement",
+  "HtmlCanvasElement",
+  "CanvasRenderingContext2d",
+  "HtmlImageElement",
+  "HtmlAnchorElement",
+  "File",
+  "FileList",
+  "FileReader",
+  "ProgressEvent",
+  "MouseEvent",
+  "TouchEvent",
+  "TouchList",
+  "Touch",
+  "Blob",
+  "Url",
+  "DomTokenList",
+  "NodeList",
+  "Event",
+  "EventTarget",
+  "CssStyleDeclaration",
+]
+
+[profile.release]
+opt-level = "s"
+lto = true
