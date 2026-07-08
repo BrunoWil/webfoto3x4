@@ -97,7 +97,8 @@ fn inject_style(document: &Document) -> Result<(), JsValue> {
 
 fn inject_body(document: &Document) -> Result<(), JsValue> {
     let body = document.body().ok_or("sem <body>")?;
-    body.set_inner_html(BODY_HTML);
+    let ano = js_sys::Date::new_0().get_full_year();
+    body.set_inner_html(&body_html(ano));
     Ok(())
 }
 
@@ -168,7 +169,7 @@ fn draw(state: &AppState, canvas: &HtmlCanvasElement, ctx: &CanvasRenderingConte
         );
     }
 
-    ctx.set_stroke_style(&JsValue::from_str("rgba(47,93,58,0.5)"));
+    ctx.set_stroke_style(&JsValue::from_str("rgba(37,99,235,0.5)"));
     ctx.set_line_width(1.0);
     ctx.stroke_rect(0.5, 0.5, cw - 1.0, ch - 1.0);
 }
@@ -586,23 +587,28 @@ fn wire_download(document: &Document, state: &Shared) -> Result<(), JsValue> {
 
 // ---------- markup ----------
 
-const BODY_HTML: &str = r##"
+fn body_html(ano: u32) -> String {
+    format!(r##"
 <nav>
-  <a href="#topo" class="logo">Foto3x4.</a>
+  <a href="#inicio" class="logo nav-scroll">Bruno.</a>
   <div class="nav-links">
-    <a href="#topo">Início</a>
-    <a href="#conversor">Conversor</a>
-    <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+    <a href="#inicio" class="nav-scroll">Início</a>
+    <a href="#conversor" class="nav-scroll">Conversor</a>
+    <a href="#contato" class="nav-scroll">Contato</a>
   </div>
 </nav>
 
-<div class="wrap" id="topo">
-  <header>
-    <span class="eyebrow">Rust · WebAssembly · sem servidor</span>
-    <h1>Foto 3x4</h1>
-    <p class="lede">Recorte, ajuste o zoom e exporte sua foto no formato de documento. Todo o processamento roda em WebAssembly, direto no navegador.</p>
-  </header>
-  <div id="conversor"></div>
+<section id="inicio">
+  <h1>Olá, eu sou <span>Bruno</span></h1>
+  <p>Engenheiro de Software e DevOps. Profissional motivado e focado no desenvolvimento full-stack de aplicações inovadoras e funcionais.</p>
+  <a href="#conversor" class="btn nav-scroll">Usar o Conversor</a>
+</section>
+
+<section id="conversor">
+  <h2 class="section-title">Conversor de Foto 3x4</h2>
+  <p style="text-align:center;color:var(--text-muted);max-width:560px;margin:-2rem auto 3rem;">
+    Recorte, ajuste o zoom e exporte no formato de documento — 100% em WebAssembly, direto no navegador.
+  </p>
 
   <div class="layout">
     <div class="card stage">
@@ -662,66 +668,96 @@ const BODY_HTML: &str = r##"
       <span class="note">Arraste dentro da moldura para reposicionar o enquadramento.</span>
     </div>
   </div>
-</div>
-<footer>conversor-3x4 · Rust + WebAssembly, sem backend</footer>
-"##;
+</section>
+
+<section id="contato">
+  <h2 class="section-title">Vamos Conversar?</h2>
+  <p>Busco aprimoramento contínuo e estou sempre aberto a discutir novos desafios e projetos na área de software.</p>
+  <div class="contact-links">
+    <a href="mailto:bruno.wilson.m@gmail.com">📧 bruno.wilson.m@gmail.com</a>
+    <a href="https://linkedin.com/in/bruno-wilson-moura-0a1031168/" target="_blank" rel="noopener">💼 LinkedIn</a>
+    <a href="https://github.com/BrunoWil" target="_blank" rel="noopener">💻 GitHub</a>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; {ano} Bruno. Todos os direitos reservados.</p>
+</footer>
+"##)
+}
 
 const CSS: &str = r#"
 :root{
-  --paper:#eef0ea; --card:#ffffff; --ink:#1c2b1f; --ink-soft:#5b6b5e;
-  --line:#c9d0c3; --accent:#2f5d3a; --accent-dark:#1f3f27;
+  --primary:#2563eb; --primary-dark:#1d4ed8;
+  --bg-color:#f8fafc; --text-main:#0f172a; --text-muted:#64748b; --card-bg:#ffffff;
+  --line:#e2e8f0;
 }
-*{box-sizing:border-box;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
 html{scroll-behavior:smooth;}
-body{margin:0;background:var(--paper);color:var(--ink);
-  font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;min-height:100vh;padding:0 0 80px;}
-nav{position:sticky;top:0;left:0;width:100%;z-index:1000;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:14px 20px;background:rgba(238,240,234,0.9);backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--line);}
-.logo{font-family:monospace;font-weight:700;font-size:1.1rem;color:var(--accent);
-  text-decoration:none;letter-spacing:.02em;}
-.nav-links{display:flex;gap:1.4rem;align-items:center;}
-.nav-links a{text-decoration:none;color:var(--ink);font-weight:600;font-size:.9rem;transition:color .2s;}
-.nav-links a:hover{color:var(--accent);}
-@media (max-width:640px){.nav-links a:not(:last-child){display:none;}}
-.wrap{max-width:960px;margin:0 auto;padding:40px 20px 0;}
-.eyebrow{font-family:monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--accent);border:1px solid var(--accent);padding:3px 8px;border-radius:2px;display:inline-block;margin-bottom:14px;}
-h1{font-size:clamp(32px,5vw,46px);margin:0 0 8px;}
-.lede{color:var(--ink-soft);font-size:15px;max-width:520px;line-height:1.5;}
-.layout{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;}
+body{background-color:var(--bg-color);color:var(--text-main);line-height:1.6;min-height:100vh;
+  display:flex;flex-direction:column;}
+
+nav{background-color:rgba(255,255,255,0.95);backdrop-filter:blur(8px);
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);position:sticky;top:0;left:0;width:100%;z-index:1000;
+  display:flex;justify-content:space-between;align-items:center;padding:1rem 5%;}
+.logo{font-size:1.5rem;font-weight:700;color:var(--primary);text-decoration:none;letter-spacing:1px;}
+.nav-links{display:flex;gap:1.5rem;align-items:center;}
+.nav-links a{text-decoration:none;color:var(--text-main);font-weight:500;transition:color 0.3s;}
+.nav-links a:hover{color:var(--primary);}
+@media (max-width:768px){.nav-links{display:none;}}
+
+section{padding:5rem 5%;max-width:1200px;margin:0 auto;}
+.section-title{text-align:center;font-size:2.2rem;margin-bottom:3rem;position:relative;}
+.section-title::after{content:'';display:block;width:60px;height:4px;background-color:var(--primary);
+  margin:10px auto 0;border-radius:2px;}
+
+#inicio{min-height:70vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+#inicio h1{font-size:clamp(2.2rem,5vw,3.5rem);margin-bottom:1rem;}
+#inicio h1 span{color:var(--primary);}
+#inicio p{font-size:1.2rem;color:var(--text-muted);max-width:600px;margin-bottom:2rem;}
+.btn{background-color:var(--primary);color:#fff;padding:0.8rem 2rem;border-radius:8px;
+  text-decoration:none;font-weight:600;transition:0.3s;display:inline-block;}
+.btn:hover{background-color:var(--primary-dark);transform:translateY(-2px);}
+
+/* ferramenta */
+.layout{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;max-width:960px;margin:0 auto;}
 @media (max-width:800px){.layout{grid-template-columns:1fr;}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:6px;}
+.card{background-color:var(--card-bg);border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);}
 .stage{padding:20px;display:flex;flex-direction:column;gap:14px;}
-.stage-head{display:flex;justify-content:space-between;font-family:monospace;font-size:11px;
-  text-transform:uppercase;color:var(--ink-soft);}
-.canvas-frame{position:relative;border:1px dashed var(--line);border-radius:4px;background:#fbfbfa;
+.stage-head{display:flex;justify-content:space-between;font-size:11px;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--text-muted);font-weight:600;}
+.canvas-frame{position:relative;border:1px dashed var(--line);border-radius:8px;background:#f8fafc;
   display:flex;align-items:center;justify-content:center;min-height:380px;overflow:hidden;cursor:grab;}
 .canvas-frame.dragging{cursor:grabbing;}
-.empty-state{position:absolute;text-align:center;color:var(--ink-soft);font-size:13px;}
-.empty-state strong{display:block;color:var(--ink);font-size:17px;margin-bottom:4px;}
+.empty-state{position:absolute;text-align:center;color:var(--text-muted);font-size:13px;}
+.empty-state strong{display:block;color:var(--text-main);font-size:17px;margin-bottom:4px;}
 .zoom-row{display:flex;align-items:center;gap:10px;}
-.zoom-row label{font-family:monospace;font-size:11px;color:var(--ink-soft);}
-input[type=range]{flex:1;}
+.zoom-row label{font-size:11px;font-weight:600;color:var(--text-muted);}
+input[type=range]{flex:1;accent-color:var(--primary);}
 .panel{padding:24px;display:flex;flex-direction:column;gap:22px;}
-.field-label{font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--ink-soft);display:block;margin-bottom:10px;}
-.file-btn{width:100%;background:var(--ink);color:#fff;border:none;border-radius:4px;padding:13px 16px;
-  font-size:14px;font-weight:600;cursor:pointer;}
-.file-btn:hover{background:var(--accent-dark);}
+.field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--primary);display:block;margin-bottom:10px;}
+.file-btn{width:100%;background:var(--text-main);color:#fff;border:none;border-radius:8px;padding:13px 16px;
+  font-size:14px;font-weight:600;cursor:pointer;transition:0.3s;}
+.file-btn:hover{background:var(--primary-dark);}
 .sizes{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.size-opt{border:1px solid var(--line);border-radius:4px;padding:10px 12px;cursor:pointer;font-size:13px;}
-.size-opt:hover{border-color:var(--accent);}
-.size-opt.active{border-color:var(--accent);background:#f2f7f3;}
-.size-opt .dim{font-family:monospace;font-weight:600;display:block;}
-.size-opt .desc{color:var(--ink-soft);font-size:11px;}
+.size-opt{border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;font-size:13px;transition:0.2s;}
+.size-opt:hover{border-color:var(--primary);}
+.size-opt.active{border-color:var(--primary);background:#eff6ff;}
+.size-opt .dim{font-weight:700;display:block;color:var(--text-main);}
+.size-opt .desc{color:var(--text-muted);font-size:11px;}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);
-  border-radius:4px;padding:12px 14px;cursor:pointer;}
-.convert-btn{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:15px;
-  font-size:15px;font-weight:700;cursor:pointer;}
-.convert-btn:hover:not(:disabled){background:var(--accent-dark);}
-.convert-btn:disabled{background:#c9d0c3;cursor:not-allowed;}
-.note{font-size:11px;color:var(--ink-soft);font-family:monospace;}
-footer{max-width:960px;margin:40px auto 0;text-align:center;font-family:monospace;font-size:11px;color:var(--ink-soft);}
+  border-radius:8px;padding:12px 14px;cursor:pointer;}
+.convert-btn{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:15px;
+  font-size:15px;font-weight:700;cursor:pointer;transition:0.3s;}
+.convert-btn:hover:not(:disabled){background:var(--primary-dark);transform:translateY(-2px);}
+.convert-btn:disabled{background:#cbd5e1;cursor:not-allowed;}
+.note{font-size:11px;color:var(--text-muted);}
+
+#contato{text-align:center;background-color:var(--card-bg);border-radius:16px;padding:4rem 2rem;
+  box-shadow:0 4px 20px rgba(0,0,0,0.03);margin-bottom:3rem;}
+.contact-links{display:flex;justify-content:center;gap:2rem;margin-top:2rem;flex-wrap:wrap;}
+.contact-links a{color:var(--primary);text-decoration:none;font-weight:600;font-size:1.1rem;}
+
+footer{text-align:center;padding:2rem;background-color:var(--text-main);color:#fff;margin-top:auto;}
 "#;
