@@ -60,10 +60,7 @@ pub fn run() -> Result<(), JsValue> {
         .get_element_by_id("preview-canvas")
         .unwrap()
         .dyn_into()?;
-    let ctx: CanvasRenderingContext2d = canvas
-        .get_context("2d")?
-        .unwrap()
-        .dyn_into()?;
+    let ctx: CanvasRenderingContext2d = canvas.get_context("2d")?.unwrap().dyn_into()?;
 
     resize_preview_canvas(&canvas, 600, 800);
 
@@ -338,7 +335,11 @@ fn wire_size_options(
 
 fn simplify_ratio(w: u32, h: u32) -> String {
     fn gcd(a: u32, b: u32) -> u32 {
-        if b == 0 { a } else { gcd(b, a % b) }
+        if b == 0 {
+            a
+        } else {
+            gcd(b, a % b)
+        }
     }
     let g = gcd(w, h).max(1);
     format!("{} : {}", w / g, h / g)
@@ -489,7 +490,8 @@ fn wire_pointer_events(
                 draw(&state.borrow(), &canvas, &ctx);
             }
         });
-        canvas_target.add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())?;
+        canvas_target
+            .add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())?;
         closure.forget();
     }
 
@@ -543,8 +545,7 @@ fn wire_download(document: &Document, state: &Shared) -> Result<(), JsValue> {
         }
 
         // canvas de pré-visualização atual define a escala relativa
-        let preview_canvas: HtmlCanvasElement =
-            el(&document, "preview-canvas").unwrap();
+        let preview_canvas: HtmlCanvasElement = el(&document, "preview-canvas").unwrap();
         let scale_ratio = out_w as f64 / preview_canvas.width() as f64;
 
         let scale = s.base_scale * s.zoom * scale_ratio;
@@ -565,18 +566,13 @@ fn wire_download(document: &Document, state: &Shared) -> Result<(), JsValue> {
         let document2 = document.clone();
         let callback = Closure::<dyn FnMut(_)>::new(move |blob: web_sys::Blob| {
             let url = web_sys::Url::create_object_url_with_blob(&blob).unwrap();
-            let a: HtmlAnchorElement = document2
-                .create_element("a")
-                .unwrap()
-                .dyn_into()
-                .unwrap();
+            let a: HtmlAnchorElement = document2.create_element("a").unwrap().dyn_into().unwrap();
             a.set_href(&url);
             a.set_download(&filename);
             a.click();
             web_sys::Url::revoke_object_url(&url).ok();
         });
-        let _ = out_canvas
-            .to_blob_with_type(callback.as_ref().unchecked_ref(), "image/jpeg");
+        let _ = out_canvas.to_blob_with_type(callback.as_ref().unchecked_ref(), "image/jpeg");
         callback.forget();
     });
 
@@ -588,22 +584,16 @@ fn wire_download(document: &Document, state: &Shared) -> Result<(), JsValue> {
 // ---------- markup ----------
 
 fn body_html(ano: u32) -> String {
-    format!(r##"
+    format!(
+        r##"
 <nav>
-  <a href="#inicio" class="logo nav-scroll">Bruno.</a>
+  <a href="https://brunowil.github.io/portifolio/#inicio" class="logo nav-scroll">Bruno.</a>
   <div class="nav-links">
-    <a href="#inicio" class="nav-scroll">Início</a>
-    <a href="#conversor" class="nav-scroll">Conversor</a>
-    <a href="#contato" class="nav-scroll">Contato</a>
+    <a href="https://brunowil.github.io/portifolio/#inicio" class="nav-scroll">Início</a>
+    <a href="https://brunowil.github.io/portifolio/#projetos" class="nav-scroll">Projetos</a>
+    <a href="https://brunowil.github.io/portifolio/#contato" class="nav-scroll">Contato</a>
   </div>
 </nav>
-
-<section id="inicio">
-  <h1>Olá, eu sou <span>Bruno</span></h1>
-  <p>Engenheiro de Software e DevOps. Profissional motivado e focado no desenvolvimento full-stack de aplicações inovadoras e funcionais.</p>
-  <a href="#conversor" class="btn nav-scroll">Usar o Conversor</a>
-</section>
-
 <section id="conversor">
   <h2 class="section-title">Conversor de Foto 3x4</h2>
   <p style="text-align:center;color:var(--text-muted);max-width:560px;margin:-2rem auto 3rem;">
@@ -683,7 +673,9 @@ fn body_html(ano: u32) -> String {
 <footer>
   <p>&copy; {ano} Bruno. Todos os direitos reservados.</p>
 </footer>
-"##)
+
+"##
+    )
 }
 
 const CSS: &str = r#"
