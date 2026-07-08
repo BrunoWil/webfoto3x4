@@ -10,6 +10,9 @@ crate-type = ["cdylib"]
 wasm-bindgen = "=0.2.92"
 js-sys = "=0.3.69"
 console_error_panic_hook = "0.1"
+gloo-net = "0.4.0"
+serde = { version = "1.0", features = ["derive"] }
+wasm-bindgen-futures = "0.4.42"
 
 [dependencies.web-sys]
 version = "=0.3.69"
@@ -40,6 +43,9 @@ features = [
   "Event",
   "EventTarget",
   "CssStyleDeclaration",
+  "Node",
+  "ScrollBehavior",
+  "ScrollToOptions",
 ]
 
 [profile.release]
